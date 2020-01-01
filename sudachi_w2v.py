@@ -11,8 +11,8 @@ class Sudachi_w2v:
         f = open(path, 'r')
         self.file = f
         self.reader = csv.reader(f, delimiter=' ')
-        #ÅÉÜLPêXgâAhXXgðì¬·éi©ÈèÔ©©éj
-        #2ñÚÈ~Ípickle»µ½àÌðÇÝÞ
+        # 最初に含有単語リストやメモリアドレスリストを作成する（かなり時間かかる）
+        # 2回目以降はpickle化したものを読み込む
         if os.path.exists(sudachiDataPath):
             with open(sudachiDataPath, 'rb') as f:
                 dataset = pickle.load(f)
@@ -22,11 +22,11 @@ class Sudachi_w2v:
             self.ave_vec = dataset["ave_vec"]
         else:
             txt = f.readline()
-            #ªU\»Ì³
+            # 分散表現の次元数
             self.emb_size = int(txt.split()[1])
-            #¢mêª½ê½ÏxNgðÔ·
+            # 未知語が来た場合平均ベクトルを返す
             self.ave_vec = np.zeros(self.emb_size, np.float)
-            #AhXXg
+            # メモリアドレスリスト
             self.offset_list = []
             word_list = []
             count = 0
@@ -53,21 +53,21 @@ class Sudachi_w2v:
                 pickle.dump(dataset, f)
 
         self.num_rows = len(self.offset_list)
-        #sudachiÌõ
+        # sudachiの準備
         self.tokenizer_obj = dictionary.Dictionary().create()
-        self.mode = tokenizer.Tokenizer.SplitMode.C
+        self.mode = tokenizer.Tokenizer.SplitMode.B
 
-    #PêðxNg»
+    # 単語をベクトル化
     def word2vec(self, word):
         try:
             idx = self.word2index[word]
             result = self.read_row(idx)
             vec = np.array(result[-300:])
             return vec
-        except:#PêXgÉÈ¢ê
+        except:#単語リストにない場合
             print(word, ": out of wordlist")
 
-    #¶Íðª©¿«µ½ãC»ê¼êÌxNgðmatÅÜÆßÄÔ·
+    #文章を分かち書きした後，それぞれのベクトルをmatでまとめて返す
     def sentence2mat(self, sentence):
         words = sentence.replace("@"," ").replace("\n"," ")
         words = re.sub(r"\s+", " ", words)
@@ -94,8 +94,11 @@ class Sudachi_w2v:
         self.file.seek(self.offset_list[idx])
         return next(self.reader)
 
+
+
 path = '/home/ymaki/word2vec_model/nwjc_sudachi_full_abc_w2v/nwjc.sudachi_full_abc_w2v.txt'
 sudachi = Sudachi_w2v(path)
+
 
 vec = sudachi.word2vec("天気")
 print(vec)

@@ -13,3 +13,10 @@ class Utterance:
         self.is_skip = is_skip
         pass
 
+    def set_focus(self, focus):
+        self.focus = focus
+
+    def set_focus_wakachi(self, list):
+        focus_wakachi = list()
+        for f in list:
+            focus_wakachi.append(f.normalizedForm())
